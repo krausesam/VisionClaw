@@ -5,10 +5,17 @@ jobs:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Build App (Skip Signing)
+      
+      - name: List Files (Debug)
+        run: ls -R
+        
+      - name: Build App
         run: |
-          cd samples/CameraAccess
-          xcodebuild build -project CameraAccess.xcodeproj -scheme CameraAccess -configuration Debug -sdk iphoneos \
+          # We search for the xcodeproj file automatically
+          PROJECT_PATH=$(find . -name "*.xcodeproj" -print -quit)
+          echo "Found project at: $PROJECT_PATH"
+          
+          xcodebuild build -project "$PROJECT_PATH" -scheme CameraAccess -configuration Debug -sdk iphoneos \
           CODE_SIGNING_ALLOWED=NO \
           CODE_SIGNING_REQUIRED=NO \
           CODE_SIGN_IDENTITY="" \
@@ -16,10 +23,12 @@ jobs:
           
           # Prepare the IPA structure
           mkdir -p build/Payload
-          cp -R build/Debug-iphoneos/CameraAccess.app build/Payload/
+          APP_PATH=$(find . -name "*.app" -type d -print -quit)
+          cp -R "$APP_PATH" build/Payload/
           cd build && zip -r VisionClaw.ipa Payload
+          
       - name: Upload Finished App
         uses: actions/upload-artifact@v4
         with:
           name: VisionClaw-IPA
-          path: samples/CameraAccess/build/VisionClaw.ipa
+          path: build/VisionClaw.ipa
