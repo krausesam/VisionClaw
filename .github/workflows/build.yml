@@ -5,14 +5,20 @@ jobs:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Build IPA
+      - name: Build App (Skip Signing)
         run: |
           cd samples/CameraAccess
-          xcodebuild build -project CameraAccess.xcodeproj -scheme CameraAccess -configuration Debug -sdk iphoneos CODE_SIGNING_ALLOWED=NO
+          xcodebuild build -project CameraAccess.xcodeproj -scheme CameraAccess -configuration Debug -sdk iphoneos \
+          CODE_SIGNING_ALLOWED=NO \
+          CODE_SIGNING_REQUIRED=NO \
+          CODE_SIGN_IDENTITY="" \
+          AD_HOC_CODE_SIGNING_ALLOWED=YES
+          
+          # Prepare the IPA structure
           mkdir -p build/Payload
-          cp -R build/Release-iphoneos/CameraAccess.app build/Payload/
+          cp -R build/Debug-iphoneos/CameraAccess.app build/Payload/
           cd build && zip -r VisionClaw.ipa Payload
-      - name: Upload Artifact
+      - name: Upload Finished App
         uses: actions/upload-artifact@v4
         with:
           name: VisionClaw-IPA
