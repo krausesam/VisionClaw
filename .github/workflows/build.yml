@@ -6,29 +6,23 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       
-      - name: List Files (Debug)
-        run: ls -R
-        
       - name: Build App
         run: |
-          # We search for the xcodeproj file automatically
-          PROJECT_PATH=$(find . -name "*.xcodeproj" -print -quit)
-          echo "Found project at: $PROJECT_PATH"
-          
-          xcodebuild build -project "$PROJECT_PATH" -scheme CameraAccess -configuration Debug -sdk iphoneos \
+          cd samples/CameraAccess
+          xcodebuild build -project CameraAccess.xcodeproj -scheme CameraAccess -configuration Debug -sdk iphoneos \
           CODE_SIGNING_ALLOWED=NO \
           CODE_SIGNING_REQUIRED=NO \
           CODE_SIGN_IDENTITY="" \
-          AD_HOC_CODE_SIGNING_ALLOWED=YES
+          AD_HOC_CODE_SIGNING_ALLOWED=YES \
+          CONFIGURATION_BUILD_DIR=build_output
           
-          # Prepare the IPA structure
-          mkdir -p build/Payload
-          APP_PATH=$(find . -name "*.app" -type d -print -quit)
-          cp -R "$APP_PATH" build/Payload/
-          cd build && zip -r VisionClaw.ipa Payload
+          # Create the IPA structure using the specific output directory
+          mkdir -p Payload
+          cp -R build_output/CameraAccess.app Payload/
+          zip -r VisionClaw.ipa Payload
           
       - name: Upload Finished App
         uses: actions/upload-artifact@v4
         with:
           name: VisionClaw-IPA
-          path: build/VisionClaw.ipa
+          path: samples/CameraAccess/VisionClaw.ipa
