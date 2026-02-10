@@ -1,0 +1,19 @@
+name: Build VisionClaw
+on: workflow_dispatch
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build IPA
+        run: |
+          cd samples/CameraAccess
+          xcodebuild build -project CameraAccess.xcodeproj -scheme CameraAccess -configuration Debug -sdk iphoneos CODE_SIGNING_ALLOWED=NO
+          mkdir -p build/Payload
+          cp -R build/Release-iphoneos/CameraAccess.app build/Payload/
+          cd build && zip -r VisionClaw.ipa Payload
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: VisionClaw-IPA
+          path: samples/CameraAccess/build/VisionClaw.ipa
